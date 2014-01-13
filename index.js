@@ -35,11 +35,9 @@ app.use(methodOverride('_method'))
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(express.urlencoded({ extended: true }))
 app.use((req, res, next) => {
-    if (req.body.auth !== process.env.AUTH && req.query.auth !== process.env.AUTH) {
-        res.sendStatus(403)
-    } else {
-        next()
-    }
+    if (!req.query.auth) res.sendStatus(401)
+    else if (req.query.auth !== process.env.AUTH) res.sendStatus(403)
+    else next()
 })
 
 app.get('/', async (req, res) => {
@@ -56,22 +54,18 @@ app.get('/items/:id', async (req, res) => {
 app.post('/', async (req, res) => {
     const item = new Item(req.body)
     await item.save()
-    req.flash('success', 'Successfully added Campground')
     res.redirect(`/${item._id}`)
 })
 
-app.put('/:id', async (req, res) => {
+app.patch('/items/:id', async (req, res) => {
     const { id } = req.params
     const item = await Item.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
-    req.flash('success', 'Successfully updated Item')
-    // res.redirect(`/${id}`)
     res.sendStatus(200)
 })
 
-app.delete('/:id', async (req, res) => {
+app.delete('/items/:id', async (req, res) => {
     const { id } = req.params
     const campground = await Item.findByIdAndDelete(id)
-    req.flash('success', 'Successfully deleted Item')
     res.sendStatus(200)
 })
 
