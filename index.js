@@ -20,7 +20,6 @@ mongoose.connect('mongodb://localhost:27017/warehouse', {
         console.log(err)
     })
 
-app.set('view engine', 'ejs')
 app.use(session({
     secret: 'vb66Se12eB',
     resave: false,
@@ -30,7 +29,6 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 24 * 7
     }
 }))
-app.use(flash())
 app.use(methodOverride('_method'))
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(express.urlencoded({ extended: true }))
@@ -42,19 +40,19 @@ app.use((req, res, next) => {
 
 app.get('/', async (req, res) => {
     const items = await Item.find()
-    res.render('index', { items })
+    res.json(items)
 })
 
 app.get('/items/:id', async (req, res) => {
     const { id } = req.params
     const item = await Item.findById(id)
-    res.render('show', { item })
+    res.json(item)
 })
 
 app.post('/', async (req, res) => {
     const item = new Item(req.body)
     await item.save()
-    res.redirect(`/${item._id}`)
+    res.redirect(`/items/${item._id}`)
 })
 
 app.patch('/items/:id', async (req, res) => {
@@ -65,7 +63,7 @@ app.patch('/items/:id', async (req, res) => {
 
 app.delete('/items/:id', async (req, res) => {
     const { id } = req.params
-    const campground = await Item.findByIdAndDelete(id)
+    const item = await Item.findByIdAndDelete(id)
     res.sendStatus(200)
 })
 
